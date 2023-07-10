@@ -1,18 +1,20 @@
-const {Neo4jGraphQL} = require('@neo4j/graphql')
-const {ApolloServer, gql} = require('@apollo/server')
-const neo4j = require('neo4j-driver')
-const { startStandaloneServer } = require ( '@apollo/server/standalone')
+import { ApolloServer } from '@apollo/server';
+import { startStandaloneServer } from '@apollo/server/standalone';
+import { Neo4jGraphQL } from "@neo4j/graphql";
+import neo4j from "neo4j-driver";
+import 'dotenv/config'
 
 
 const driver = neo4j.driver(
-    "bolt://localhost:7687",
-    neo4j.auth.basic("neo4j", "password")
+    process.env.NEO4J_URI,
+    neo4j.auth.basic("neo4j", process.env.NEO4J_PASSWORD)
 );
 
-const neoSchema = new Neo4jGraphQL({ typeDefs, driver });
+
+
+// Define types
 
 const typeDefs = `#graphql
-
  type Game {
     id: ID!,
     title: String!,
@@ -43,11 +45,19 @@ const typeDefs = `#graphql
    author(id:ID!): Author
  }
 
- type Mutation {
-   addGame(game: AddGameInput!): Game
-    deleteGame(id: ID!): [Game]
-    updateGame(id: ID!, edits: EditGameInput): Game
- }
-
-
 `
+
+
+
+const neoSchema = new Neo4jGraphQL({ typeDefs, driver });
+
+const server = new ApolloServer({
+   schema: await neoSchema.getSchema(),
+});
+
+const { url } = await startStandaloneServer(server, {
+   context: async ({ req }) => ({ req }),
+   listen: { port: 4000 },
+});
+
+console.log(` Server running at ${url}`);
