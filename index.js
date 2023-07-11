@@ -4,6 +4,7 @@ import { Neo4jGraphQL } from "@neo4j/graphql";
 import neo4j from "neo4j-driver";
 import 'dotenv/config'
 
+// the csv file is an example to work with csv files in neo4j workspace
 
 const driver = neo4j.driver(
     process.env.NEO4J_URI,
